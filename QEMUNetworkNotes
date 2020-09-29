@@ -1,0 +1,83 @@
+10 Linux brctl Command Examples for Ethernet Network Bridge:
+	https://www.thegeekstuff.com/2017/06/brctl-bridge/
+
+
+QEMU networking options (for Makefile)
+
+Should use '-object filter-dump' vs. older '-net dump' ?
+
+Extremely important: https://www.qemu.org/2018/05/31/nic-parameter/, https://wiki.qemu.org/Documentation/Networking
+
+From https://qemu.weilnetz.de/doc/qemu-doc.html#Network-options:
+	-nic [tap|bridge|user|l2tpv3|vde|netmap|vhost-user|socket][,...][,mac=macaddr][,model=mn]
+		"This option is a shortcut for configuring both the on-board (default) guest NIC hardware and the host network backend in one go. The host backend options are the same as with the corresponding -netdev options below. The guest NIC model can be set with model=modelname. Use model=help to list the available device types. The hardware MAC address can be set with mac=macaddr."
+		
+	hostfwd=[tcp|udp]:[hostaddr]:hostport-[guestaddr]:guestport 	<-- an option for '-nic'
+		"When using the '-netdev user,hostfwd=...' option, TCP or UDP connections can be redirected from the host to the guest. It allows for example to redirect X11, telnet or SSH connections."
+
+
+	-netdev user,id=id[,option][,option][,...]
+		"Configure user mode host network backend which requires no administrator privilege to run. (many options available)"
+	
+
+	-netdev tap,id=id[,fd=h][,ifname=name][,script=file][,downscript=dfile][,br=bridge][,helper=helper]
+		"Configure a host TAP network backend with ID id.
+
+		Use the network script file to configure it and the network script dfile to deconfigure it. If name is not provided, the OS automatically provides one. The default network configure script is /etc/qemu-ifup and the default network deconfigure script is /etc/qemu-ifdown. Use script=no or downscript=no to disable script execution.
+
+		If running QEMU as an unprivileged user, use the network helper helper to configure the TAP interface and attach it to the bridge. The default network helper executable is /path/to/qemu-bridge-helper and the default bridge device is br0.
+
+		fd=h can be used to specify the handle of an already opened host TAP interface."
+
+
+	-netdev bridge,id=id[,br=bridge][,helper=helper]
+		"Connect a host TAP network interface to a host bridge device.
+		Use the network helper helper to configure the TAP interface and attach it to the bridge. The default network helper executable is /path/to/qemu-bridge-helper and the default bridge device is br0."
+
+
+	-netdev socket,id=id[,fd=h][,listen=[host]:port][,connect=host:port]
+		"This host network backend can be used to connect the guest’s network to another QEMU virtual machine using a TCP socket connection. If listen is specified, QEMU waits for incoming connections on port (host is optional). connect is used to connect to another QEMU instance using the listen option. fd=h specifies an already opened TCP socket."
+
+
+
+*** ON USING USER MODE VS TAP MODE ***
+
+
+
+* From the wikipedia page on TUN/TAP:
+"Packets sent by an operating system via a TUN/TAP device are delivered to a user-space program which attaches itself to the device. A user-space program may also pass packets into a TUN/TAP device. In this case the TUN/TAP device delivers (or "injects") these packets to the operating-system network stack thus emulating their reception from an external source"
+
+
+
+* From https://qemu.weilnetz.de/doc/qemu-doc.html#Using-TAP-network-interfaces:
+"Using TAP network interfaces:
+This is the standard way to connect QEMU to a real network. QEMU adds a virtual network device on your host (called tapN), and you can then configure it as if it was a real ethernet card.
+
+
+Linux host:
+As an example, you can download the linux-test-xxx.tar.gz archive and copy the script qemu-ifup in /etc and configure properly sudo so that the command ifconfig contained in qemu-ifup can be executed as root. You must verify that your host kernel supports the TAP network interfaces: the device /dev/net/tun must be present.
+
+
+Using the user mode network stack:
+By using the option -net user (default configuration if no -net option is specified), QEMU uses a completely user mode network stack (you don’t need root privilege to use the virtual network). The virtual network configuration is the following:
+
+     guest (10.0.2.15)  <------>  Firewall/DHCP server <-----> Internet
+                           |          (10.0.2.2)
+                           |
+                           ---->  DNS server (10.0.2.3)
+                           |
+                           ---->  SMB server (10.0.2.4)
+                           
+The QEMU VM behaves as if it was behind a firewall which blocks all incoming connections. You can use a DHCP client to automatically configure the network in the QEMU VM. The DHCP server assign addresses to the hosts starting from 10.0.2.15.
+
+In order to check that the user mode network is working, you can ping the address 10.0.2.2 and verify that you got an address in the range 10.0.2.x from the QEMU virtual DHCP server."
+
+
+
+* From https://en.wikibooks.org/wiki/QEMU/Networking:
+"User mode networking is great for allowing access to network resources, including the Internet. In particular, it allows ssh from the guest to the host. By default, however, it acts as a firewall and does not permit any incoming traffic. It also doesn't support protocols other than TCP and UDP - so, for example, ping and other ICMP utilities won't work."
+
+"To allow network connections to the guest OS under user mode networking, you can redirect a port on the host OS to a port on the guest OS. This is useful for supporting file sharing, web servers and SSH servers from the guest OS."
+^ Example: '-redir tcp:2222::80'
+			^ TCP port 2222 on the host is redirected to the guest's port 80 (the web server)
+

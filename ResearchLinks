@@ -1,0 +1,15 @@
+QEMU documentation on network options and adapters: 
+	https://qemu.weilnetz.de/doc/qemu-doc.html#Network-options
+	https://wiki.qemu.org/Documentation/Networking
+	https://www.qemu.org/2018/05/31/nic-parameter/
+	https://en.wikibooks.org/wiki/QEMU/Networking
+	http://bsdwiki.reedmedia.net/wiki/networking_qemu_virtual_bsd_systems.html
+	https://wiki.qemu.org/Documentation/Networking/NAT
+
+Porting LWIP to another OS:
+	https://lwip.fandom.com/wiki/Porting_for_an_OS
+	https://www.nongnu.org/lwip/2_0_x/group__sys__layer.html
+	https://www.nongnu.org/lwip/2_0_x/raw_api.html
+	https://courses.cs.washington.edu/courses/cse481a/18wi/projects/payload.pdf
+	https://antoinealb.net/programming/2013/12/06/lwip-ucos2.html
+	http://www.ece.ualberta.ca/~cmpe401/docs/lwip.pdf
